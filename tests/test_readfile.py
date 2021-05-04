@@ -3,7 +3,9 @@ from unittest import mock
 from playlist_converter import readfile
 
 
-@mock.patch("playlist_converter.readfile.os")
+READFILE = "playlist_converter.readfile"
+
+@mock.patch(READFILE + ".os")
 class TestDirectoryFunctions(unittest.TestCase):
     """Test functions in readfile.py that read directory contents."""
 
@@ -42,11 +44,46 @@ class TestDirectoryFunctions(unittest.TestCase):
 
     def test_directory_textfiles_none(self, mock_os):
         mock_os.path.isdir.return_value = True
-        func_target = "playlist_converter.readfile.filter_textfiles"
+        func_target = READFILE + ".filter_textfiles"
         with mock.patch(func_target) as mock_func:
             mock_func.return_value = []
             with self.assertRaises(FileNotFoundError):
                 readfile.directory_textfiles(".")
+
+
+class TestPlaylistFile(unittest.TestCase):
+    """Test methods and properties of PlaylistFile instances."""
+
+    def setUp(self):
+        self.song_lines = ["Track---Artist 1, Artist 2", "Track 2---Artist"]
+        func_target = READFILE + ".PlaylistFile.clean_lines"
+        self.patcher = mock.patch(func_target)
+        self.mock_func = self.patcher.start()
+        self.mock_func.return_value = self.song_lines
+        self.instance = readfile.PlaylistFile("playlist.txt")
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_constructor(self):
+        self.assertIsInstance(self.instance, readfile.PlaylistFile)
+        self.assertTrue(self.mock_func.called)
+        self.assertEqual(self.instance.lines, self.song_lines)
+
+    def test_playlist_name(self):
+        func_target = READFILE + ".PlaylistFile.line_starts_with"
+        with mock.patch(func_target) as mock_line_start:
+            mock_line_start.return_value = None
+            self.assertIsNone(self.instance.playlist_name())
+            mock_line_start.return_value = "Name: My Playlist "
+            self.assertEqual(self.instance.playlist_name(), "My Playlist")
+            self.assertEqual(mock_line_start.call_count, 2)
+
+    def test_playlist_items(self):
+        result = self.instance.playlist_items("---")
+        self.assertEqual(len(result), 2)
+        self.assertIn(("Track", "Artist 1, Artist 2"), result)
+        self.assertIn(("Track 2", "Artist"), result)
 
 
 if __name__ == "__main__":
