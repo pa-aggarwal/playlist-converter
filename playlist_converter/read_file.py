@@ -68,3 +68,13 @@ def get_playlists(directory_path: str) -> List[PlaylistFile]:
         playlists.append(PlaylistFile(tf_path))
     return playlists
 
+
+if __name__ == "__main__":
+    path = "C:\\Users\\priya\\Projects\\temp\\data"
+    playlists = get_playlists(path)
+    for p in playlists:
+        print("Playlist: {}".format(p.playlist_name()))
+        p_items = p.playlist_items("---")
+        for item in p_items:
+            print(item)
+        print()
