@@ -60,7 +60,7 @@ class TestPlaylistFile(unittest.TestCase):
         self.patcher = mock.patch(func_target)
         self.mock_func = self.patcher.start()
         self.mock_func.return_value = self.song_lines
-        self.instance = read_file.PlaylistFile("playlist.txt")
+        self.instance = read_file.PlaylistFile("songs.txt", "songs.txt")
 
     def tearDown(self):
         self.patcher.stop()
@@ -68,13 +68,15 @@ class TestPlaylistFile(unittest.TestCase):
     def test_constructor(self):
         self.assertIsInstance(self.instance, read_file.PlaylistFile)
         self.assertTrue(self.mock_func.called)
+        self.assertEqual(self.instance.filename, "songs.txt")
         self.assertEqual(self.instance.lines, self.song_lines)
 
     def test_playlist_name(self):
         func_target = READFILE + ".PlaylistFile.line_starts_with"
         with mock.patch(func_target) as mock_line_start:
             mock_line_start.return_value = None
-            self.assertIsNone(self.instance.playlist_name())
+            filename = self.instance.filename
+            self.assertEqual(self.instance.playlist_name(), filename)
             mock_line_start.return_value = "Name: My Playlist "
             self.assertEqual(self.instance.playlist_name(), "My Playlist")
             self.assertEqual(mock_line_start.call_count, 2)
