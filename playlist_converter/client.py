@@ -1,9 +1,12 @@
+from json import dumps
 from typing import List, Tuple, Dict, Union, Any
 import requests
 
 
 SEARCH_URL = "https://api.spotify.com/v1/search"
 CONTAINS_URL = "https://api.spotify.com/v1/me/tracks/contains"
+PLAYLIST_URL = "https://api.spotify.com/v1/users/{}/playlists"
+ADD_TRACK_URL = "https://api.spotify.com/v1/playlists/{}/tracks"
 
 class SpotifyClient:
     """Client makes requests to the Spotify API to create a playlist."""
@@ -41,6 +44,45 @@ class SpotifyClient:
             return track_results[0]
         return saved_track
 
+    def create_playlist(self, name: str) -> str:
+        request_args = {
+            "url": PLAYLIST_URL.format(self.user_id),
+            "headers": {
+                "Authorization": "Bearer " + self.access_token,
+                "Content-Type": "application/json"
+            },
+            "data": dumps({"name": name})
+        }
+        response_json = send_request("POST", request_args)
+        # Playlist ID used to add tracks to the playlist
+        return response_json["id"]
+
+    def add_playlist_tracks(self, pid: str, track_uris: List[str]) -> None:
+        request_args = {
+            "url": ADD_TRACK_URL.format(pid),
+            "headers": {
+                "Authorization": "Bearer " + self.access_token,
+                "Content-Type": "application/json"
+            }
+        }
+        # Maximum of 100 items per request
+        subsets = subsets_of_size(track_uris, 100)
+        for subset in subsets:
+            request_body = {"uris": subset}
+            request_args["data"] = dumps(request_body)
+            send_request("POST", request_args)
+
+    def make_playlist_with_tracks(
+            self,
+            playlist_name: str,
+            tracks_with_artist: List[Tuple[str, str]]
+        ) -> None:
+        track_ids = [self.get_track_id(*pair) for pair in tracks_with_artist]
+        track_uris = ["spotify:track:{}".format(tid) for tid in track_ids]
+        if track_uris:
+            playlist_id = self.create_playlist(playlist_name)
+            self.add_playlist_tracks(playlist_id, track_uris)
+
 
 def send_request(method: str, request_args: Dict) -> Any:
     response = requests.request(method, **request_args)
@@ -53,3 +95,11 @@ def first_saved(tracks_saved: List[Tuple[str, bool]]) -> Union[str, None]:
             return tid
     return None
 
+def subsets_of_size(items: List, size: int) -> List[List]:
+    subsets = []
+    duplicate = list(items)
+    while duplicate:
+        subset = duplicate[:size]
+        subsets.append(subset)
+        duplicate = duplicate[size:]
+    return subsets
