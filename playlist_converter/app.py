@@ -9,6 +9,7 @@ config_error_msg = "Something went wrong reading your config file...\n"
 
 def show_error(message: str) -> None:
     sys.stderr.write("Error: {}\n".format(message))
+    sys.stderr.flush()
     sys.exit(1)
 
 def quote_each_word(words: List[str]) -> str:
@@ -39,7 +40,8 @@ def get_config_values(config: parser) -> Optional[Dict[str, str]]:
         }
     except configparser.Error as error:
         show_error(config_error_msg + error.message)
-    return values
+    else:
+        return values
 
 def check_empty(mapping: Dict[str, str]) -> None:
     empty_keys = [key for key in mapping if not mapping[key]]
