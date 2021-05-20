@@ -2,6 +2,9 @@ import os
 import sys
 import configparser
 from typing import Dict, List, Optional
+from requests import RequestException, HTTPError
+from .client import SpotifyClient
+from .read_file import get_playlists, PlaylistFile
 
 
 parser = configparser.ConfigParser
@@ -57,11 +60,41 @@ def check_data_order(data_order: str) -> None:
         custom_msg = "Key 'data_order' must equal one of {}".format(quoted)
         show_error(config_error_msg + custom_msg)
 
+def get_playlist_files(dir_path: str) -> Optional[List[PlaylistFile]]:
+    try:
+        playlist_files = get_playlists(dir_path)
+    except (NotADirectoryError, FileNotFoundError) as error:
+        custom_msg = "Something went wrong reading the directory path...\n"
+        show_error(custom_msg + str(error))
+    else:
+        return playlist_files
+
+def convert_files(
+        playlist_files: List[PlaylistFile],
+        client: SpotifyClient,
+        delimiter: str,
+        order: str
+        ) -> None:
+    for file in playlist_files:
+        name = file.playlist_name()
+        items = file.playlist_items(delimiter, order)
+        try:
+            client.make_playlist_with_tracks(name, items)
+        except HTTPError:
+            show_error("Failed due to an HTTP error")
+        except RequestException as error:
+            custom_msg = "A request exception occurred...\n"
+            show_error(custom_msg + str(error))
+
 def run_app():
     config_path = get_config_path()
     config = get_config_values(read_config(config_path))
     check_empty(config)
     check_data_order(config["data_order"])
+    files = get_playlist_files(config["directory_path"])
+    sp_client = SpotifyClient(config["access_token"], config["user_id"])
+    delimiter, data_order = config["data_delimiter"], config["data_order"]
+    convert_files(files, sp_client, delimiter, data_order)
 
 
 if __name__ == "__main__":

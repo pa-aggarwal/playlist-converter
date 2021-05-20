@@ -32,14 +32,23 @@ class PlaylistFile:
         colon_index = line.index(":")
         return line[colon_index + 1:].strip()
 
-    def playlist_items(self, delimiter: str) -> List[Tuple[str, str]]:
+    def playlist_items(
+            self,
+            delimiter: str,
+            order: str) -> List[Tuple[str, str]]:
         """Return a list of pairs of song names and their respective artist."""
         # Assumption: Track name and artists separated by delimiter
+        # Assumption: order argument is "track artist" or "artist track"
         items = []
+        track_index = order.split().index("track")
+        artist_index = order.split().index("artist")
         for ln in self.lines:
             content = ln.split(delimiter)
-            if len(content) >= 2:
-                items.append((content[0].strip(), content[1].strip()))
+            if len(content) < 2:
+                continue
+            track = content[track_index].strip()
+            artist = content[artist_index].strip()
+            items.append((track, artist))
         return items
 
 

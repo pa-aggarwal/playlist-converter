@@ -77,6 +77,13 @@ class TestApp(unittest.TestCase):
         app.check_data_order("foo")
         self.assertTrue(self.mock_error.called)
 
+    @mock.patch("playlist_converter.app.get_playlists")
+    def test_get_playlist_files_failure(self, mock_get):
+        for error in [NotADirectoryError, FileNotFoundError]:
+            mock_get.side_effect = error
+            app.get_playlist_files("foo/bar")
+            self.assertTrue(self.mock_error.called)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -82,7 +82,7 @@ class TestPlaylistFile(unittest.TestCase):
             self.assertEqual(mock_line_start.call_count, 2)
 
     def test_playlist_items(self):
-        result = self.instance.playlist_items("---")
+        result = self.instance.playlist_items("---", "track artist")
         self.assertEqual(len(result), 2)
         self.assertIn(("Track", "Artist 1, Artist 2"), result)
         self.assertIn(("Track 2", "Artist"), result)
