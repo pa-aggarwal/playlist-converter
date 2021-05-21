@@ -1,6 +1,33 @@
 # Playlist Converter
 
+[![Python](https://img.shields.io/badge/python-3.6%2B-blue?style=flat-square)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)](./tests)
+[![License: MIT](https://img.shields.io/github/license/pa-aggarwal/playlist-converter?color=orange&style=flat-square)](https://opensource.org/licenses/MIT)
+
 Convert a text file of songs to a playlist on your <a href="https://open.spotify.com/">Spotify account</a>. Create your playlists faster instead of manually searching for songs.
+
+![Demo](./assets/demo.gif)
+
+Recorded using <a href="https://www.screentogif.com/">ScreenToGif</a>.
+
+## Table of Contents
+
+* [How It Works](#how-it-works)
+* [Credits](#credits)
+* [Getting Started](#getting-started)
+    * [Prerequisites](#prerequisites)
+    * [Installation](#installation)
+    * [Configuration](#configuration)
+* [Usage](#usage)
+* [Contributing](#contributing)
+* [License](#license)
+
+## How It Works
+
+* This application reads the contents of every text file in a directory on your computer
+* You must provide details of how your files are structured in a configuration file
+* Getting a temporary access token from Spotify authorizes this app to access/change your account data
+* Using the Python requests library, this application sends the data to Spotify's web API to create the playlist
 
 ## Credits
 
@@ -9,7 +36,7 @@ Convert a text file of songs to a playlist on your <a href="https://open.spotify
 
 ## Getting Started
 
-Before running this project locally, make sure you meet/install the prerequisites listed below. After meeting the prerequisites, follow the instructions in the [Installation](#Installation) section.
+Before running this project locally, make sure you meet/install the prerequisites listed below. After meeting the prerequisites, follow the instructions in the [Installation](#installation) section.
 
 ### Prerequisites
 
@@ -34,13 +61,16 @@ python --version
 git clone https://github.com/pa-aggarwal/playlist-converter.git
 ```
 
-2\. Create a python virtual environment and install the packages in the `requirements.txt` file.
+2\. Create a python virtual environment, activate it, and install the packages in the `requirements.txt` file.
 ```
 # Navigate to directory
 cd playlist-converter
 
 # Create virtual environment 'venv'
 python -m venv venv
+
+# Activate virtual environment
+. venv/Scripts/activate
 
 # Install packages from requirements.txt
 python -m pip install -r requirements.txt
@@ -51,7 +81,7 @@ python -m pip install -r requirements.txt
 # Copy the template config file
 cp config/template.ini config/config.ini
 ```
-Open the `config.ini` file in your preferred text editor and change the values of the config keys to match your file setup. See the [Configuration](#Configuration) section for what these keys are and how to fill them in.
+Open the `config.ini` file in your preferred text editor and change the values of the config keys to match your file setup. See the [Configuration](#configuration) section for what these keys are and how to fill them in.
 
 4\. Visit https://developer.spotify.com/console/get-search-item/ to get a temporary access token from Spotify. Check mark the following scopes to authenticate this application:
 * user-library-read
@@ -69,7 +99,7 @@ What are the config keys and how do I fill them in?
 * `data_order`: `track artist` or `artist track` based on how songs are listed in your files.
 * `data_delimiter`: The characters separating track name from artist name(s), preferrably at least 3 chars long e.g. `---`, `###`
 * `user_id`: Your username on your spotify account
-* `access_token`: Token value from step 4 of [Installation](#Installation)
+* `access_token`: Token value from step 4 of [Installation](#installation)
 
 Here is an example file setup (location and contents), along with a configuration file:
 
@@ -101,12 +131,14 @@ access_token = long-key-from-spotify
 
 ## Usage
 
-Make sure you've completed steps from the [Installation](#Installation) section before running this application. This includes making your configuration file and putting text files to convert in their own directory.
+Make sure you've completed steps from the [Installation](#installation) section before running this application. This includes making your configuration file and putting text files to convert in their own directory.
 
-In the cloned repository, run this command to create your playlists:
+In the cloned repository with the venv activated, run this command to create your playlists:
 ```
-python -m playlist_converter/app.py
+python -m playlist_converter.app
 ```
+This may take a couple of minutes depending on how large your files are.
+
 You may see an error message if there was an issue trying to convert your files, like one of the following:
 * Missing configuration file or config keys
 * Invalid directory path
